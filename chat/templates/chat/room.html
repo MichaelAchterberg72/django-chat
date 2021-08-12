@@ -1,0 +1,808 @@
+{% extends 'base_home.html' %}
+{% load static %}
+{% block title %}My {{block.super}} Internal Chat{% endblock title %}
+
+{% block content %}
+<!-- Chat -->
+<link rel="stylesheet" href="{% static 'css/chat-css.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<div class="row" style="z-index:-1;">
+  <div class="col-sm-4">
+    <div class="card card-shadow h-100">
+      <div class="side-one">
+        <div class="row heading">
+          <div class="col-sm-8 col-xs-3 heading-avatar">
+            <div class="heading-avatar-icon">
+              <img src="https://bootdey.com/img/Content/avatar/avatar1.png">
+              <span class="user-name-heading">{{ username }}</span>
+            </div>
+          </div>
+          <div class="col-sm-1 col-xs-1  heading-dot  pull-right">
+            <i class="fa fa-ellipsis-v fa-2x  pull-right" aria-hidden="true"></i>
+          </div>
+          <div class="col-sm-2 col-xs-2 heading-compose  pull-right">
+            <a href="{% url 'Chat:index' %}">
+              <i class="fa fa-comments fa-2x  pull-right" aria-hidden="true" data-toggle="tooltip" title="Back to Index"></i
+            </a>
+          </div>
+        </div>
+
+        <div class="row searchBox">
+          <div class="col-sm-12 searchBox-inner">
+            <div class="form-group has-feedback">
+              <input id="searchText" type="text" class="form-control" name="searchText" placeholder="Search">
+              <span class="glyphicon glyphicon-search form-control-feedback"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row sideBar" id='menu'>
+          <!--
+          {% for room in chat_rooms.items %}
+
+          <a href="{% url 'Chat:room' room.1.group.0.2 %}">
+          <div class="row sideBar-body">
+            <div class="col-md-3 sideBar-avatar">
+              <div class="avatar-icon">
+                <img src="https://bootdey.com/img/Content/avatar/avatar1.png">
+              </div>
+            </div>
+            <div class="col-md-9 sideBar-main">
+              <div class="row">
+                <div class="col-7 col-no-pad sideBar-name">
+                  <span class="name-meta">{{ room.1.group.0.0 }}
+                    {% if room.1.notification > 0 %}
+                    <span class="notification">
+                      {{ room.1.notification }}
+                    </span>
+                    {% endif %}
+                </span>
+                </div>
+                <div class="col-4 col-no-pad float-right sideBar-time">
+                  <span class="time-meta float-right">{{ room.1.group.0.1|date:"D, j M" }}
+                </span>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+          </a>
+          {% endfor %}
+          -->
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-8 conversation">
+    <div class="card card-shadow">
+      <div class="row heading">
+        <div class="col-sm-2 col-md-1 col-xs-3 heading-avatar">
+          <a href="{% url 'Talent:APV_L' room.0 %}" target="_blank">
+            <div class="heading-avatar-icon">
+              <img src="https://bootdey.com/img/Content/avatar/avatar6.png">
+            </div>
+          </a>
+        </div>
+        <div class="col-sm-9 col-xs-7 heading-name">
+          <a class="heading-name-meta" href="{% url 'Talent:APV_L' room.0 %}" target="_blank">{{ room.0 }}
+          </a>
+          <span class="heading-online">Online</span>
+        </div>
+        <div class="col-sm-1 col-xs-1 heading-dot pull-right">
+          <div class="btn-group delete-chat">
+            <button class="" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              <i class="fa fa-ellipsis-v fa-2x  pull-right" aria-hidden="true"></i>
+            </button>
+            <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+              <a class="dropdown-item" href="{% url 'Talent:APV_L' room.0 %}" target="_blank">View Profile</a>
+              <a class="dropdown-item" onclick="deleteChat()" href="{% url 'Chat:index' %}">Delete Chat</a>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="row message" id="chat-log">
+        <div class="row message-previous">
+          <div class="col-sm-12 previous">
+            <button id="show-previous-messages-submit">
+              Show Previous Messages!
+            </button>
+
+          </div>
+        </div>
+<!--
+        <div class="row message-body">
+          <div class="col-sm-12 message-main-receiver">
+            <div class="receiver">
+              <div class="message-text">
+               Hi, what are you doing?!
+              </div>
+              <span class="message-time pull-right">
+                Sun
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row message-body">
+          <div class="col-sm-12 message-main-sender">
+            <div class="sender">
+              <div class="message-text">
+                I am doing nothing man!
+              </div>
+              <span class="message-time pull-right">
+                Sun
+              </span>
+            </div>
+          </div>
+        </div>
+-->
+      </div>
+      <div class="row reply-message-dialog d-none" id="reply-div-id">
+        <div class="col-sm-1 col-xs-1">
+        </div>
+        <div class="col-sm-10 col-xs-10">
+          <div class="reply-message-dialog-box">
+            <div class="row reply-author" id="reply-div-author-id">
+            </div>
+            <div class="row reply-message" id="reply-div-message-id">
+              <span class="d-none" id="reply-div-message-id-id"></span>
+            </div>
+          </div>
+        </div>
+        <div class="col-sm-1 col-xs-1 reply-emojis">
+          <i class="fa fa-times" onclick="closeReplyDialog()" aria-hidden="true"></i>
+        </div>
+      </div>
+      <div class="row reply">
+        <div class="col-sm-1 col-xs-1 reply-emojis">
+          <i class="fa fa-smile-o fa-2x"></i>
+        </div>
+        <div class="col-sm-9 col-xs-9 reply-main">
+          <textarea class="form-control" rows="1" id="chat-message-input"></textarea>
+        </div>
+        <div class="col-sm-1 col-xs-1 reply-recording">
+          <i class="fa fa-microphone fa-2x" aria-hidden="true"></i>
+        </div>
+        <div class="col-sm-1 col-xs-1 reply-send">
+          <button id="chat-message-submit">
+            <i class="fa fa-send fa-2x" aria-hidden="true"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="{% static 'js/reconnecting-websocket.js' %}"></script>
+<script src= "https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+  $(document).ready(function(){
+   $('#chat-log').animate({ scrollTop: $(document).height() }, 1000);
+  });
+</script>
+<script>
+  var roomName = {{ room_name_json }};
+  var username = {{ username }};
+
+  var chatSocket = new ReconnectingWebSocket(
+      'ws://' + window.location.host +
+      '/ws/chat/' + roomName + '/');
+
+  chatSocket.onopen = function(e) {
+    fetchMessages();
+    fetchMenu();
+
+    $('#chat-log').stop().animate({
+      scrollTop: $('#chat-log')[0].scrollHeight
+    }, 800);
+  }
+
+  var menuList = document.querySelector('#menu');
+  var filterMenu = document.getElementById('searchText');
+
+  filterMenu.addEventListener('keyup', filterMenuItems);
+
+  function filterMenuItems(e){
+   var text = e.target.value.toLowerCase();
+   var menuItems = menuList.getElementsByClassName('row sidebar-body');
+
+   Array.from(menuItems).forEach(function(menuItem){
+     var menuItemName = menuItem.childNodes[0][1][0][1].textContent;
+
+     if(menuItemName.toLowerCase().indexOf(text) != -1){
+       menuItem.style.display = 'block';
+     } else {
+       menuItem.style.display = 'none';
+     }
+   });
+ };
+
+  chatSocket.onmessage = function(e) {
+       var data = JSON.parse(e.data);
+       if (data['command'] === 'messages') {
+         for (let i=0; i<data['messages'].length; i++) {
+           createMessage(data['messages'][i]);
+         }
+       } else if (data['command'] === 'new_message'){
+         createMessage(data['message']);
+       } else if (data['command'] === 'fetch_menu'){
+  //        for (let i=0; i<data['menus'].length; i++){
+  //          createMenu(data['menus'][i]);
+          createMenu(data['menus']);
+  //        }
+      } else if (data['command'] === 'fetch_previous_messages'){
+         for (let i=0; i<data['messages'].length; i++){
+           createPreviousMessages(data['messages'][i]);
+        }
+     } else if (data['command'] === 'update_message'){
+         updateMessageReadCheck(data['message']);
+     } else if (data['command'] === 'delete_message'){
+         deleteMessageInstance(data['message']);
+     }
+   };
+
+  chatSocket.onclose = function(e) {
+      console.error('Chat socket closed unexpectedly');
+  };
+
+  document.querySelector('#chat-message-input').onkeyup = function(e) {
+      if (e.keyCode === 13 && e.shiftKey) {
+        this.value = content.substring(0, caret - 1) + "\n" + content.substring(caret, content.length);
+      }
+      else if (e.keyCode === 13) {  // enter, return
+          document.querySelector('#chat-message-submit').click();
+      }
+  };
+
+  document.querySelector('#chat-message-submit').onclick = function(e) {
+      var messageInputDom = document.getElementById('chat-message-input');
+      var replyMessage = document.getElementById('reply-div-message-id-id');
+      var replyMessageID = replyMessage.textContent;
+      var message = messageInputDom.value;
+      chatSocket.send(JSON.stringify({
+          'command': 'new_message',
+          'message': message,
+          'reply': replyMessageID,
+          'from': username
+      }));
+
+      messageInputDom.value = '';
+
+      closeReplyDialog();
+
+//      $(document).ready(function(){
+//       $('#chat-log').animate({ scrollTop: $(document).height() }, 1000);
+//      });
+      $('#chat-log').stop().animate({
+        scrollTop: $('#chat-log')[0].scrollHeight
+      }, 800);
+   };
+
+  document.querySelector('#show-previous-messages-submit').onclick = function(e) {
+    fetchPreviousMessages();
+  };
+
+  function fetchMenu() {
+    chatSocket.send(JSON.stringify({'command': 'fetch_menu' }));
+  };
+
+  function fetchMessages() {
+    chatSocket.send(JSON.stringify({'command': 'fetch_messages' }));
+  };
+
+  function fetchPreviousMessages() {
+    messageRID = document.getElementById("msgID").textContent;
+    chatSocket.send(JSON.stringify({
+        'command': 'fetch_previous_messages',
+        'id': messageRID
+      }));
+  };
+
+  function msgDel(messageRID) {
+    chatSocket.send(JSON.stringify({
+        'command': 'delete_message',
+        'id': messageRID
+      }));
+  };
+
+  function deleteChat() {
+    chatSocket.send(JSON.stringify({
+      'command': 'delete_chat',
+      'from': username
+      }));
+  };
+
+  setInterval(function() {
+      fetchMenu();
+  }, 60 * 1000); // 60 * 1000 milsec fir every 1 minute
+
+  function msgReply(messageRID) {
+    var replyDiv = document.getElementById('reply-div-id');
+    var chatDiv = document.getElementById('chat-log');
+    chatDiv.setAttribute("style", "height:368px");
+    replyDiv.className = 'row reply-message-dialog';
+    var msgAuthor = document.getElementById('message-author'+messageRID);
+    var replyDivAuthor = document.getElementById('reply-div-author-id');
+    replyDivAuthor.innerText = msgAuthor.innerText;
+    var replyDivMessage = document.getElementById('reply-div-message-id');
+    var text_to_change = replyDivMessage.childNodes[0];
+    if (document.getElementById("msgTextLinkID"+messageRID) == null) {
+      var msgText = document.getElementById("msgTextID"+messageRID).childNodes[0].nodeValue;
+      text_to_change.nodeValue = msgText;
+    } else if (document.getElementById("msgTextID"+messageRID).childNodes[0].nodeValue == null) {
+      var msgLinkText = document.getElementById("msgTextLinkID"+messageRID).innerHTML;
+      text_to_change.nodeValue = msgLinkText;
+    } else {
+      var msgText = document.getElementById("msgTextID"+messageRID).childNodes[0].nodeValue;
+      var msgLinkText = document.getElementById("msgTextLinkID"+messageRID).innerHTML;
+      text_to_change.nodeValue = msgText + msgLinkText;
+    };
+    var replyDivID = document.getElementById('reply-div-message-id-id');
+    replyDivID.innerText = messageRID;
+  };
+
+  function closeReplyDialog() {
+    var replyDiv = document.getElementById('reply-div-id');
+    replyDiv.className = 'row reply-message-dialog d-none';
+    var chatDiv = document.getElementById('chat-log');
+    chatDiv.setAttribute("style", "height:480px");
+    var replyDivAuthor = document.getElementById('reply-div-author-id');
+    replyDivAuthor.innerText = '';
+    var replyDivMessage = document.getElementById('reply-div-message-id');
+    var text_to_change = replyDivMessage.childNodes[0];
+    text_to_change.nodeValue = '';
+    var replyDivID = document.getElementById('reply-div-message-id-id');
+    replyDivID.innerText = '';
+  };
+
+  function deleteMessageInstance(data) {
+    var msgID = [data.id];
+    var msgContent = data.content;
+    var msgContentID = "msgTextID"+msgID;
+    var msgIdElement = document.getElementById(msgContentID);
+    var msgLinkText = document.getElementById("msgTextLinkID"+msgID);
+    var text_to_change = msgIdElement.childNodes[0];
+//    msgLinkText.innerHTML = msgContent;
+    var textnode = document.createTextNode(msgContent);
+    if (msgLinkText) {
+      msgLinkText.replaceChild(textnode, msgLinkText.childNodes[0]);
+      msgLinkText.removeAttribute("href");
+    };
+    var replyMsgDiv = document.getElementById('replymessageID'+msgID);
+    replyMsgDiv.style.display = 'none';
+    text_to_change.nodeValue = msgContent;
+  };
+
+  function updateMessageReadCheck(data) {
+    var msgID = [data.id]
+    var msgCheckID = "msgCheckID"+msgID;
+    var msgReadCount = [data.message_read]
+    var msgReadID = "msgReadID"+msgID;
+    var msgInitialMembersID = "msgInitialMembersID"+msgID
+    var msgInitialMembersElement = document.getElementById(msgInitialMembersID);
+    var msgIdElement = document.getElementById(msgReadID);
+    var msgCheckElement = document.getElementById(msgCheckID);
+    msgIdElement.innerText = msgReadCount;
+    if (msgIdElement.innerText > 0) {
+      msgCheckElement.setAttribute("style", "color:#9a9a9a !important");
+    } else if (msgInitialMembersElement.innerText == 1) {
+      msgCheckElement.setAttribute("style", "color:#9a9a9a !important");
+    } else {
+      msgCheckElement.setAttribute("style", "color:#66ff00 !important");
+    }
+  };
+
+
+  function linkify(inputText, messageRID) {
+
+    //URLs starting with http://, https://, or ftp://
+    var replacePattern1 = /(\b(https?|ftp):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/gim;
+    var replacedText = inputText.replace(replacePattern1, '<a class="message-text link" id="msgTextLinkID' + messageRID + '" href="$1" target="_blank">$1</a>');
+
+    //URLs starting with www. (without // before it, or it'd re-link the ones done above)
+    var replacePattern2 = /(^|[^\/])(www\.[\S]+(\b|$))/gim;
+    var replacedText = replacedText.replace(replacePattern2, '$1<a class="message-text link" id="msgTextLinkID' + messageRID + '" href="http://$2" target="_blank">$2</a>');
+
+    //URLs starting without www. (without // before it, or it'd re-link the ones done above)
+//    var replacePattern3 = /(^|[^\/])([\S]+(\b|$))/gim;
+//    var replacedText = replacedText.replace(replacePattern3, '$1<a class="message-text link" id="msgTextLinkID' + messageRID + '" href="http://$2" target="_blank">$2</a>');
+
+    //Change email addresses to mailto:: links
+    var replacePattern4 = /(\w+@[a-zA-Z_]+?\.[a-zA-Z]{2,6})/gim;
+    var replacedText = replacedText.replace(replacePattern4, '<a class="message-text link" id="msgTextLinkID' + messageRID + '" href="mailto:$1">$1</a>');
+
+    return replacedText
+  };
+
+  function createMessage(data) {
+    var author = data['author'];
+    var msgChatMembersCount = [data.chat_room_members_count];
+    var messageRID = [data.id];
+    var messageDeleted = data.message_deleted;
+    var inputText = data.content;
+    var textContent = linkify(inputText, messageRID);
+    var msgListTag = document.createElement('div');
+    var replyMsgDiv = document.createElement('div');
+    replyMsgDiv.setAttribute('id', 'replymessageID'+messageRID);
+    var replyMsgAuthor = document.createElement('div');
+    replyMsgAuthor.className = 'reply-message-author';
+    replyMsgAuthor.textContent = [data.reply_message_author];
+
+    var replyMsgContent = document.createElement('div');
+    replyMsgContent.className = 'reply-message-text';
+    replyMsgContent.textContent = [data.reply_message_content];
+
+    var msgAuthor = document.createElement('div');
+    msgAuthor.className = 'message-author';
+    msgAuthor.setAttribute('id', 'message-author'+messageRID);
+    msgAuthor.textContent = [data.author];
+
+    var rowTag = document.createElement('div');
+    rowTag.className = 'row message-body';
+    rowTag.setAttribute('id', 'message');
+    var colTag = document.createElement('div');
+    var messageTag = document.createElement('div');
+    messageTag.className = 'message-text';
+    messageTag.setAttribute("id", "msgTextID"+messageRID);
+    messageTag.innerHTML = textContent;
+    var spanTimeTag = document.createElement('span');
+    spanTimeTag.className = 'message-time pull-right';
+    var messageId = document.createElement('div');
+    messageId.setAttribute("id", "msgID");
+    messageId.className = 'd-none';
+    messageId.textContent = [data.id];
+    spanTimeTag.textContent = [data.timestamp];
+    var msgReadTag = document.createElement('span');
+    msgReadTag.className = 'd-none';
+    msgReadTag.setAttribute("id", "msgReadID"+messageRID);
+    var magReadCount = [data.message_read]
+    msgReadTag.textContent = [data.message_read];
+
+    var initialMembersTag = document.createElement('span');
+    initialMembersTag.className = 'd-none';
+    var initialMembersCount = [data.initial_members_count];
+    initialMembersTag.textContent = initialMembersCount;
+    initialMembersTag.setAttribute('id', "msgInitialMembersID"+messageRID);
+
+    var msgReadSelfTag = document.createElement('span');
+    msgReadSelfTag.className = 'd-none';
+    var magReadSelfCount = [data.message_read_self];
+    msgReadSelfTag.textContent = [data.message_read_self];
+    var msgCheck = document.createElement('i');
+    msgCheck.className = 'fa fa-check message-check pull-right';
+    msgCheck.setAttribute("aria-hidden", "true");
+    msgCheck.setAttribute('id', "msgCheckID"+messageRID);
+
+    var btnDivTag = document.createElement('div');
+    btnDivTag.className = 'btn-group pull-right';
+    var btnButtonTag = document.createElement('button');
+    btnButtonTag.setAttribute("type", "button");
+    btnButtonTag.className = 'btn dropdown-toggle';
+    btnButtonTag.setAttribute("data-toggle", "dropdown");
+    btnButtonTag.setAttribute("aria-haspopup", "true");
+    btnButtonTag.setAttribute("aria-expanded", "false");
+    var dropDownTag = document.createElement('div');
+    dropDownTag.className = 'dropdown-menu';
+
+    var replyLinkTag = document.createElement('a');
+    replyLinkTag.className = 'dropdown-item';
+    replyLinkTag.setAttribute('id', "msgReplyID"+messageRID);
+    replyLinkTag.setAttribute('onclick', "msgReply("+messageRID+")");
+    replyLinkTag.textContent = 'Reply';
+
+    var delLinkTag = document.createElement('a');
+    delLinkTag.className = 'dropdown-item';
+    delLinkTag.setAttribute('id', "msgDelID"+messageRID);
+    delLinkTag.setAttribute('onclick', "msgDel("+messageRID+")");
+    delLinkTag.textContent = 'Delete Message';
+
+
+    if (author === username) {
+      colTag.className = 'col-sm-12 message-main-sender';
+      msgListTag.className = 'sender';
+      rowTag.className = 'row message-body';
+      msgAuthor.className = 'd-none';
+    } else {
+      colTag.className = 'col-sm-12 message-main-receiver';
+      msgListTag.className = 'receiver';
+      rowTag.className = 'row message-body';
+      msgCheck.className = 'd-none';
+      delLinkTag.className = 'dropdown-item d-none';
+      if (msgChatMembersCount > 2) {
+        msgAuthor.className = 'message-author';
+      } else {
+        msgAuthor.className = 'd-none';
+      }
+    }
+
+    if (replyMsgContent.textContent === "") {
+      replyMsgDiv.className = 'reply-message-div d-none';
+    } else {
+      replyMsgDiv.className = 'reply-message-div';
+    }
+
+
+
+    document.querySelector('#chat-log').appendChild(rowTag);
+    rowTag.appendChild(colTag);
+    colTag.appendChild(msgListTag);
+
+    msgListTag.appendChild(msgAuthor);
+
+    if (messageDeleted==false) {
+      msgAuthor.after(replyMsgDiv);
+      replyMsgDiv.appendChild(replyMsgAuthor);
+      replyMsgAuthor.after(replyMsgContent);
+
+      replyMsgDiv.after(messageTag)
+    } else {
+      msgAuthor.after(messageTag)
+    };
+
+    messageTag.appendChild(btnDivTag);
+    btnDivTag.appendChild(btnButtonTag);
+    btnButtonTag.after(dropDownTag);
+    dropDownTag.appendChild(replyLinkTag);
+    replyLinkTag.after(delLinkTag);
+
+    messageTag.appendChild(initialMembersTag);
+    initialMembersTag.after(msgReadSelfTag);
+    msgReadSelfTag.after(msgReadTag);
+    messageTag.after(spanTimeTag);
+    spanTimeTag.after(messageId);
+    spanTimeTag.appendChild(msgCheck);
+
+    if (magReadCount > 0) {
+      msgCheck.setAttribute("style", "color:#9a9a9a !important");
+    } else if (initialMembersCount == 1) {
+      msgCheck.setAttribute("style", "color:#9a9a9a !important");
+    };
+
+    if (magReadSelfCount > 0) {
+      messageReadNotification();
+      cmdUpdateMessageRead();
+    };
+
+    function cmdUpdateMessageRead() {
+      chatSocket.send(JSON.stringify({
+          'command': 'update_message',
+          'id': messageRID
+        }));
+    };
+
+    function messageReadNotification() {
+      chatSocket.send(JSON.stringify({
+          'command': 'message_read_notification',
+          'id': messageRID
+      }));
+    };
+
+  };
+
+  function createPreviousMessages(data) {
+    var app = document.querySelector('#message')
+    var author = data['author'];
+    var msgChatMembersCount = [data.chat_room_members_count];
+    var messageRID = [data.id];
+    var messageDeleted = [data.message_deleted]
+    var inputText = data.content;
+    var textContent = linkify(inputText, messageRID);
+    var msgListTag = document.createElement('div');
+    var replyMsgDiv = document.createElement('div');
+    replyMsgDiv.setAttribute('id', 'replymessageID'+messageRID);
+    var replyMsgAuthor = document.createElement('div');
+    replyMsgAuthor.className = 'reply-message-author';
+    replyMsgAuthor.textContent = [data.reply_message_author];
+
+    var replyMsgContent = document.createElement('div');
+    replyMsgContent.className = 'reply-message-text';
+    replyMsgContent.textContent = [data.reply_message_content];
+
+    var msgAuthor = document.createElement('div');
+    msgAuthor.className = 'message-author';
+    msgAuthor.setAttribute('id', 'message-author'+messageRID);
+    msgAuthor.textContent = [data.author];
+
+    var rowTag = document.createElement('div');
+    rowTag.className = 'row message-body';
+    rowTag.setAttribute('id', 'message');
+    var colTag = document.createElement('div');
+    var messageTag = document.createElement('div');
+    messageTag.className = 'message-text';
+    messageTag.setAttribute("id", "msgTextID"+messageRID);
+    messageTag.innerHTML = textContent;
+    var spanTimeTag = document.createElement('span');
+    spanTimeTag.className = 'message-time pull-right';
+    var messageId = document.createElement('div');
+    messageId.setAttribute("id", "msgID");
+    messageId.className = 'd-none';
+    messageId.textContent = [data.id];
+    spanTimeTag.textContent = [data.timestamp];
+    var msgReadTag = document.createElement('span');
+    msgReadTag.className = 'd-none';
+    msgReadTag.setAttribute("id", "msgReadID"+messageRID);
+    var magReadCount = [data.message_read]
+    msgReadTag.textContent = [data.message_read];
+    var initialMembersTag = document.createElement('span');
+    initialMembersTag.className = 'd-none';
+    var initialMembersCount = [data.initial_members_count];
+    initialMembersTag.textContent = initialMembersCount;
+    initialMembersTag.setAttribute('id', "msgInitialMembersID"+messageRID);
+    var msgReadSelfTag = document.createElement('span');
+    msgReadSelfTag.className = 'd-none';
+    var magReadSelfCount = [data.message_read_self]
+    msgReadSelfTag.textContent = [data.message_read_self];
+    var msgCheck = document.createElement('i');
+    msgCheck.className = 'fa fa-check message-check pull-right';
+    msgCheck.setAttribute("aria-hidden", "true");
+    msgCheck.setAttribute('id', "msgCheckID"+messageRID);
+
+    var btnDivTag = document.createElement('div');
+    btnDivTag.className = 'btn-group pull-right';
+    var btnButtonTag = document.createElement('button');
+    btnButtonTag.setAttribute("type", "button");
+    btnButtonTag.className = 'btn dropdown-toggle';
+    btnButtonTag.setAttribute("data-toggle", "dropdown");
+    btnButtonTag.setAttribute("aria-haspopup", "true");
+    btnButtonTag.setAttribute("aria-expanded", "false");
+    var dropDownTag = document.createElement('div');
+    dropDownTag.className = 'dropdown-menu';
+
+    var replyLinkTag = document.createElement('a');
+    replyLinkTag.className = 'dropdown-item';
+    replyLinkTag.setAttribute('id', "msgReplyID"+messageRID);
+    replyLinkTag.setAttribute('onclick', "msgReply("+messageRID+")");
+    replyLinkTag.textContent = 'Reply';
+
+    var delLinkTag = document.createElement('a');
+    delLinkTag.className = 'dropdown-item';
+    delLinkTag.setAttribute('id', "msgDelID"+messageRID);
+    delLinkTag.setAttribute('onclick', "msgDel("+messageRID+")");
+    delLinkTag.textContent = 'Delete Message';
+
+
+    if (author === username) {
+      colTag.className = 'col-sm-12 message-main-sender';
+      msgListTag.className = 'sender';
+      rowTag.className = 'row message-body';
+      msgAuthor.className = 'd-none';
+    } else {
+      colTag.className = 'col-sm-12 message-main-receiver';
+      msgListTag.className = 'receiver';
+      rowTag.className = 'row message-body';
+      msgCheck.className = 'd-none';
+      delLinkTag.className = 'dropdown-item d-none';
+      if (msgChatMembersCount > 2) {
+        msgAuthor.className = 'message-author';
+      } else {
+        msgAuthor.className = 'd-none';
+      }
+    };
+
+    if (replyMsgContent.textContent === "") {
+      replyMsgDiv.className = 'reply-message-div d-none';
+    } else {
+      replyMsgDiv.className = 'reply-message-div';
+    }
+
+
+
+    app.prepend(rowTag);
+    rowTag.appendChild(colTag);
+    colTag.appendChild(msgListTag);
+
+    msgListTag.appendChild(msgAuthor);
+
+    if (messageDeleted==false) {
+      msgAuthor.after(replyMsgDiv);
+      replyMsgDiv.appendChild(replyMsgAuthor);
+      replyMsgAuthor.after(replyMsgContent);
+
+      replyMsgDiv.after(messageTag)
+    } else {
+      msgAuthor.after(messageTag)
+    };
+
+    messageTag.appendChild(btnDivTag);
+    btnDivTag.appendChild(btnButtonTag);
+    btnButtonTag.after(dropDownTag);
+    dropDownTag.appendChild(replyLinkTag);
+    replyLinkTag.after(delLinkTag);
+
+    messageTag.appendChild(msgReadSelfTag);
+    msgReadSelfTag.after(msgReadTag);
+    messageTag.after(spanTimeTag);
+    spanTimeTag.after(messageId);
+    spanTimeTag.appendChild(msgCheck);
+
+    if (magReadCount > 0) {
+      msgCheck.setAttribute("style", "color:#9a9a9a !important");
+    } else if (initialMembersCount == 1) {
+      msgCheck.setAttribute("style", "color:#9a9a9a !important");
+    };
+
+    if (magReadSelfCount > 0) {
+      messageReadNotification();
+      cmdUpdateMessageRead();
+    };
+
+    function cmdUpdateMessageRead() {
+      chatSocket.send(JSON.stringify({
+          'command': 'update_message',
+          'id': messageRID
+        }));
+    };
+
+    function messageReadNotification() {
+      chatSocket.send(JSON.stringify({
+          'command': 'message_read_notification',
+          'id': messageRID
+      }));
+    };
+  };
+
+  function createMenu(data) {
+    var menuTag = document.createElement('div');
+    menuTag.className = 'row sideBar';
+    menuTag.setAttribute('id', 'menu');
+    document.querySelector('#menu').replaceWith(menuTag);
+
+    for (let i=0; i<data.length; i++) {
+      var url = [data[i].group_url];
+      var urlTag = document.createElement('a');
+      urlTag.className = 'row sideBar-body';
+      var avatarTag = document.createElement('div');
+      avatarTag.className = 'col-md-3 sideBar-avatar';
+      var avatarIconTag = document.createElement('div');
+      avatarIconTag.className = 'avatar-icon';
+      var avatarImgTag = document.createElement('img');
+      var sidebarMainTag = document.createElement('div');
+      sidebarMainTag.className = 'col-md-9 sideBar-main';
+      var rowTag = document.createElement('div');
+      rowTag.className = 'row';
+      var sidebarNameTag = document.createElement('div');
+      sidebarNameTag.className = 'col-7 col-no-pad sideBar-name';
+      var spanNameMeta = document.createElement('span');
+      spanNameMeta.className = 'name-meta';
+      spanNameMeta.textContent = [data[i].group];
+      var notificationCount = [data[i].notification];
+      var spanNotification = document.createElement('span');
+      var spanNotificationBlank = document.createElement('span');
+      spanNotification.className = 'notification';
+      var sidebarTime = document.createElement('div');
+      sidebarTime.className = 'col-5 col-no-pad float-right sideBar-time';
+      var spanSidebarTime = document.createElement('span');
+      spanSidebarTime.className = 'time-meta float-right';
+      spanSidebarTime.textContent = [data[i].notification_timestamp];
+
+      if (notificationCount > 0) {
+        spanNotification.textContent = [data[i].notification];
+      } else {
+        spanNotification.textContent = '';
+      }
+
+      document.querySelector('#menu').appendChild(urlTag);
+      urlTag.href = "{% url 'Chat:room' 12345 %}".replace(/12345/, url.toString());
+      urlTag.setAttribute("id", "urlTag");
+      urlTag.appendChild(avatarTag);
+      avatarTag.appendChild(avatarIconTag);
+      avatarIconTag.appendChild(avatarImgTag);
+      avatarImgTag.src = "https://bootdey.com/img/Content/avatar/avatar6.png";
+      avatarTag.after(sidebarMainTag);
+      sidebarMainTag.appendChild(rowTag);
+      rowTag.appendChild(sidebarNameTag);
+      sidebarNameTag.appendChild(spanNameMeta);
+      if (notificationCount > 0) {
+        spanNameMeta.after(spanNotification);
+      } else {
+        spanNameMeta.after(spanNotificationBlank);
+      };
+      sidebarNameTag.after(sidebarTime);
+      sidebarTime.appendChild(spanSidebarTime);
+  }}
+</script>
+{% endblock content %}

@@ -1,0 +1,107 @@
+{% extends 'base_home.html' %}
+{% load static %}
+{% block title %}My {{block.super}} Internal Chat{% endblock title %}
+
+{% block content %}
+<!-- Chat -->
+<meta http-equiv="refresh" content="60"/>
+
+<link rel="stylesheet" href="{% static 'css/chat-css.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<div class="row" style="z-index:-1;">
+  <div class="col-sm-4">
+  </div>
+  <div class="col-sm-4">
+    <div class="card card-shadow h-100">
+      <div class="side-one">
+        <div class="row heading">
+          <div class="col-sm-8 col-xs-3 heading-avatar">
+            <div class="heading-avatar-icon">
+              <img src="https://bootdey.com/img/Content/avatar/avatar1.png">
+              <span class="user-name-heading">{{ user_name }}</span>
+            </div>
+          </div>
+          <div class="col-sm-1 col-xs-1 heading-dot pull-right">
+            <i class="fa fa-ellipsis-v fa-2x  pull-right" aria-hidden="true"></i>
+          </div>
+          <div class="col-sm-2 col-xs-2 heading-compose pull-right">
+            <i class="fa fa-comments fa-2x  pull-right" aria-hidden="true" data-toggle="tooltip" title="New Chat"></i>
+          </div>
+        </div>
+
+        <div class="row searchBox">
+          <div class="col-sm-12 searchBox-inner">
+            <div class="form-group has-feedback">
+              <input id="searchText" type="text" class="form-control" name="searchText" placeholder="Search">
+              <span class="glyphicon glyphicon-search form-control-feedback"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="row sideBar" id='menu'>
+
+          {% for room in chat_rooms.items %}
+
+          <a class="row sideBar-body" href="{% url 'Chat:room' room.1.group.0.2 %}">
+            <div class="col-md-3 sideBar-avatar">
+              <div class="avatar-icon">
+                <img src="https://bootdey.com/img/Content/avatar/avatar6.png">
+              </div>
+            </div>
+            <div class="col-md-9 sideBar-main">
+              <div class="row">
+                <div class="col-7 col-no-pad sideBar-name">
+                  <span class="name-meta">{{ room.1.group.0.0 }}
+                    {% if room.1.notification > 0 %}
+                    <span class="notification">
+                      {{ room.1.notification }}
+                    </span>
+                    {% endif %}
+                </span>
+                </div>
+                <div class="col-4 col-no-pad float-right sideBar-time">
+                  <span class="time-meta float-right">{{ room.1.group.0.1|date:"D, j M" }}
+                </span>
+                </div>
+
+              </div>
+            </div>
+          </a>
+          {% endfor %}
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock content %}
+
+{% block Script %}
+<script type="text/javascript">
+
+  var menuList = document.getElementById('menu');
+  var filterMenu = document.getElementById('searchText');
+
+  filterMenu.addEventListener('keyup', filterMenuItems);
+
+  function filterMenuItems(e){
+   var text = e.target.value.toLowerCase();
+   var menuItems = menuList.getElementsByClassName('row sidebar-body');
+
+   Array.from(menuItems).forEach(function(menuItem){
+     var menuItemName = menuItem.children.className == "name-meta"
+     var menuItemNameContent = menuItemName.textContent
+
+     if(menuItemNameContent.toLowerCase().indexOf(text) != -1){
+       menuItem.style.display = 'block';
+     } else {
+       menuItem.style.display = 'none';
+     }
+   });
+ };
+
+</script>
+{% endblock Script %}
